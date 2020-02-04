@@ -1,0 +1,27 @@
+/* auteur : Yann Le Douget
+	Insertion de données de tests dans les tables. */
+/* table utilisateurs */
+INSERT INTO utilisateurs (pseudo,nom,prenom,email,telephone,rue,code_postal,ville,mot_de_passe,credit,administrateur)
+VALUES ('YannLD', 'Le Douget', 'Yann', 'yann.ledouget@mail.fr', '01-02-03-04-05','rue des échanges','22000','Saint-Brieuc','password',200,0);
+INSERT INTO utilisateurs (pseudo,nom,prenom,email,telephone,rue,code_postal,ville,mot_de_passe,credit,administrateur)
+VALUES ('DamienB', 'Bondiguel', 'Damien', 'damien.bondiguel@mail.fr', '02-03-04-05-06','rue du troc','35000','Rennes','pwd',600,1);
+INSERT INTO utilisateurs (pseudo,nom,prenom,email,telephone,rue,code_postal,ville,mot_de_passe,credit,administrateur)
+VALUES ('Alexis', 'Rebiere', 'Alexis', 'alexis.rebiere@mail.fr', '03-04-05-06-07','rue des objets utiles','35000','Rennes','motDePasse',2000,0);
+INSERT INTO utilisateurs (pseudo,nom,prenom,email,telephone,rue,code_postal,ville,mot_de_passe,credit,administrateur)
+VALUES ('ThibaultJ', 'James', 'Thibault', 'thibault.james@mail.fr', '04-05-06-07-08','rue des objets inutiles','35000','Rennes','mdp',20,1);
+INSERT INTO utilisateurs (pseudo,nom,prenom,email,telephone,rue,code_postal,ville,mot_de_passe,credit,administrateur,archive)
+VALUES ('Supp', 'Mechant', 'Monsieur', 'troll.troll@mail.fr', '05-06-07-08-09','rue des objets inutiles','35000','Rennes','mdp',20,1,1);
+
+/* table ventes */
+INSERT INTO ventes (nomarticle,description,date_fin_encheres,prix_initial,prix_vente,no_utilisateur,no_categorie,rue,code_postal,ville)
+VALUES ('Iphone5s', 'Smartphone de la petite pomme', '20190121', 500, 700,1,4, 'rue des telecoms', '35000', 'Rennes');
+INSERT INTO ventes (nomarticle,description,date_fin_encheres,prix_initial,prix_vente,no_utilisateur,no_categorie,rue,code_postal,ville)
+VALUES ('Pelle', 'En métal avec manche en bois', '20190119', 50, 75,4,6, 'rue du trésor caché', '35000', 'Rennes');
+
+/* table encheres */
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190114',750, 2, 1);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190112',75,3,2);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190111',50,1,2);

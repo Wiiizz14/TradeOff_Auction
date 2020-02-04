@@ -1,0 +1,83 @@
+﻿-- =============================================
+-- Author:		Thibault James
+-- Create date: 30/01/2019
+-- Description:	Supprimme une vente avec les enchères associées
+-- =============================================
+
+DECLARE c1 CURSOR FOR 
+	SELECT v.no_vente, e.no_utilisateur FROM VENTES v
+	INNER JOIN ENCHERES e on v.no_vente = e.no_vente
+	WHERE date_fin_encheres = CONVERT(date,DATEADD(DAY, -1, GETDATE())); 
+OPEN c1
+FETCH c1 into @c_no_vente, @e.no_utilisateur
+
+BEGIN
+UPDATE ventes SET archive = 1
+       WHERE no_vente = @no_vente;
+WHILE @@FETCH_STATUS = 0
+	BEGIN
+		EXEC Enchere_DeleteNoUserNoVente @no_utilisateur = e.no_utilisateur, @no_vente = v.no_vente; 
+		FETCH c1 into @c_no_vente, @e.no_utilisateur
+	END	
+CLOSE c1
+DEALLOCATE c1
+
+END
+GO
+
+-- =============================================
+-- Author:		Thibault James
+-- Create date: 31/01/2019
+-- Description:	Réalise la MAJ des enchères et des crédits
+-- =============================================
+
+-- Déclaration des variables
+DECLARE @c1_no_vente integer, @c1_no_utilisateur integer, @c1_termine bit,
+		@c2_no_vente integer, @c2_no_utilisateur integer, @c2_termine bit, @c2_montant integer ;
+
+-- Curseur 1 - Permet de supprimmer les enchères terminées et archivage
+DECLARE c1 CURSOR FOR
+	SELECT v.no_vente, e.no_utilisateur, v.termine FROM VENTES v
+	INNER JOIN ENCHERES e on v.no_vente = e.no_vente
+	WHERE date_fin_encheres = CONVERT(date,DATEADD(DAY, -1, GETDATE())) AND e.montant <> v.prix_vente AND v.termine = 0; 
+
+OPEN c1;
+FETCH c1 INTO @c1_no_vente, @c1_no_utilisateur, @c1_termine;
+
+BEGIN
+	UPDATE ventes SET archive = 1 
+	WHERE no_vente = @c1_no_vente;
+
+	WHILE @@FETCH_STATUS = 0
+		BEGIN
+			EXEC Enchere_DeleteNoUserNoVente @no_utilisateur = @c1_no_utilisateur, @no_vente = @c1_no_vente;
+			FETCH c1 INTO @c1_no_vente, @c1_no_utilisateur, @c1_termine;
+		END	
+	CLOSE c1;
+	DEALLOCATE c1;
+
+END
+
+-- Curseur 2 - Permet de transferer les crédit de l'acheteur vers le vendeur et archivage de la vente
+DECLARE c2 CURSOR FOR 
+	SELECT v.no_vente, v.no_utilisateur, v.termine, e.montant FROM VENTES v
+	INNER JOIN ENCHERES e on v.no_vente = e.no_vente
+	WHERE date_fin_encheres = CONVERT(date,DATEADD(DAY, -1, GETDATE())) AND e.montant = v.prix_vente AND v.termine = 0;
+
+OPEN c2;
+FETCH c2 INTO @c2_no_vente, @c2_no_utilisateur, @c2_termine, @c2_montant;
+
+BEGIN
+	UPDATE ventes SET archive = 1 
+	WHERE no_vente = @c2_no_vente;
+
+WHILE @@FETCH_STATUS = 0
+	BEGIN
+		UPDATE UTILISATEURS SET credit = credit + @c2_montant
+		WHERE no_utilisateur = @c2_no_utilisateur;
+	END
+CLOSE c2;
+DEALLOCATE c2;
+
+END
+GO

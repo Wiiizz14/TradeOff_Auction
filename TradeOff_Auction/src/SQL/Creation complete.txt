@@ -1,0 +1,807 @@
+sp_configure 'show advanced options', 1;
+GO
+RECONFIGURE;
+GO
+sp_configure 'Agent XPs', 1;
+GO
+RECONFIGURE
+GO
+
+--Creation des Tables
+
+-- Script de création de la base de données ENCHERES
+--   type :      SQL Server 2012
+--
+
+/*
+Auteur : Yann Le Douget
+Modifications : - Ajout de la contrainte 'identity' sur les primary key de toutes les tables sauf encheres
+				- Ajout des contraintes 'unique' sur la table utilisateurs pour le pseudo, l'email et le telephone
+				- Modification de la colonne email dans la table utilisateur passage à un varchar(30).
+				- Ajout de la colonne montant dans la table ENCHERES.
+*/
+
+CREATE TABLE CATEGORIES (
+    no_categorie   INTEGER IDENTITY NOT NULL,
+    libelle        NVARCHAR(30) NOT NULL
+)
+
+ALTER TABLE CATEGORIES ADD constraint categorie_pk PRIMARY KEY (no_categorie)
+
+CREATE TABLE ENCHERES (
+    date_enchere      DATE NOT NULL,
+    montant             INTEGER NOT NULL CONSTRAINT chk_montant_encheres CHECK (montant>0),
+	no_utilisateur   INTEGER NOT NULL,
+    no_vente             INTEGER NOT NULL,
+	archive			 bit NOT NULL DEFAULT 0
+)
+
+ALTER TABLE ENCHERES ADD constraint enchere_pk PRIMARY KEY (no_utilisateur, no_vente)
+
+CREATE TABLE UTILISATEURS (
+    no_utilisateur   INTEGER IDENTITY NOT NULL,
+    pseudo           NVARCHAR(30) NOT NULL UNIQUE,
+    nom              NVARCHAR(30) NOT NULL,
+    prenom           NVARCHAR(30) NOT NULL,
+    email            NVARCHAR(30) NOT NULL UNIQUE,
+    telephone        NVARCHAR(15) UNIQUE,
+    rue              NVARCHAR(30) NOT NULL,
+    code_postal      NVARCHAR(10) NOT NULL,
+    ville            NVARCHAR(30) NOT NULL,
+    mot_de_passe     NVARCHAR(30) NOT NULL,
+    credit           INTEGER NOT NULL CONSTRAINT chk_credit_utilisateur CHECK (credit>0),
+    administrateur   bit NOT NULL,
+	ban				 bit NOT NULL DEFAULT 0,
+	archive			 bit NOT NULL DEFAULT 0
+)
+
+ALTER TABLE UTILISATEURS ADD constraint utilisateur_pk PRIMARY KEY (no_utilisateur)
+
+
+CREATE TABLE VENTES (
+    no_vente                      INTEGER IDENTITY NOT NULL,
+    nomarticle                    NVARCHAR(30) NOT NULL,
+    description                   NVARCHAR(300) NOT NULL,
+    date_fin_encheres             DATE NOT NULL,
+    prix_initial                  INTEGER NOT NULL CONSTRAINT chk_prix_init CHECK (prix_initial>0),
+    prix_vente                    INTEGER,
+    no_utilisateur                INTEGER NOT NULL,
+    no_categorie                  INTEGER NOT NULL,
+	rue              			  NVARCHAR(30) NOT NULL,
+    code_postal      			  NVARCHAR(15) NOT NULL,
+    ville            			  NVARCHAR(30) NOT NULL,
+	photo						  VARBINARY(MAX),
+	termine						  bit NOT NULL DEFAULT 0,
+	archive			 			  bit NOT NULL DEFAULT 0
+)
+
+ALTER TABLE VENTES ADD constraint vente_pk PRIMARY KEY (no_vente)
+
+ALTER TABLE ENCHERES
+    ADD CONSTRAINT encheres_utilisateur_fk FOREIGN KEY ( no_utilisateur ) REFERENCES UTILISATEURS ( no_utilisateur )
+ON DELETE NO ACTION 
+    ON UPDATE no action 
+
+ALTER TABLE ENCHERES
+    ADD CONSTRAINT encheres_ventes_fk FOREIGN KEY ( no_vente )
+        REFERENCES ventes ( no_vente )
+ON DELETE NO ACTION 
+    ON UPDATE no action 
+
+ALTER TABLE VENTES
+    ADD CONSTRAINT ventes_categories_fk FOREIGN KEY ( no_categorie )
+        REFERENCES categories ( no_categorie )
+ON DELETE NO ACTION 
+    ON UPDATE no action 
+
+ALTER TABLE VENTES
+    ADD CONSTRAINT ventes_utilisateur_fk FOREIGN KEY ( no_utilisateur )
+        REFERENCES utilisateurs ( no_utilisateur )
+ON DELETE NO ACTION 
+    ON UPDATE no action 
+
+/* table Categories */
+INSERT INTO categories (libelle) VALUES ('Vêtements')
+INSERT INTO categories (libelle) VALUES ('Meubles')
+INSERT INTO categories (libelle) VALUES ('Jouets')
+INSERT INTO categories (libelle) VALUES ('Informatique')
+INSERT INTO categories (libelle) VALUES ('Décorations')
+INSERT INTO categories (libelle) VALUES ('Autre')
+
+-- INSERT de données test
+/* auteur : Yann Le Douget et Thibault James >>> Insertion de données de test dans les tables. */
+
+	
+/* Table utilisateurs >>> 6 utilisateurs */
+INSERT INTO utilisateurs (pseudo,nom,prenom,email,telephone,rue,code_postal,ville,mot_de_passe,credit,administrateur)
+VALUES ('Yann', 'Le Douget', 'Yann', 'yann.ledouget@mail.fr', '01-02-03-04-05', 'rue des échanges', '22000', 'Saint-Brieuc', 'password', 5000, 0);
+INSERT INTO utilisateurs (pseudo,nom,prenom,email,telephone,rue,code_postal,ville,mot_de_passe,credit,administrateur)
+VALUES ('Damien', 'Bondiguel', 'Damien', 'damien.bondiguel@mail.fr', '02-03-04-05-06', 'rue du troc', '35000', 'Rennes', 'pwd', 6000, 0);
+INSERT INTO utilisateurs (pseudo,nom,prenom,email,telephone,rue,code_postal,ville,mot_de_passe,credit,administrateur)
+VALUES ('Alexis', 'Rebiere', 'Alexis', 'alexis.rebiere@mail.fr', '03-04-05-06-07', 'rue des objets utiles', '35000', 'Rennes', 'motDePasse', 2000, 0);
+INSERT INTO utilisateurs (pseudo,nom,prenom,email,telephone,rue,code_postal,ville,mot_de_passe,credit,administrateur)
+VALUES ('Thibault', 'James', 'Thibault', 'thibault.james@mail.fr', '04-05-06-07-08', 'rue des objets inutiles', '35000', 'Rennes', 'mdp', 1500, 0);
+INSERT INTO utilisateurs (pseudo,nom,prenom,email,telephone,rue,code_postal,ville,mot_de_passe,credit,administrateur)
+VALUES ('Jean', 'Bon', 'Jambon', 'jean.bon@mail.fr', '07-45-16-78-09', 'Avenue de la charcuterie', '13000', 'Marseille', 'jb', 200, 0);
+INSERT INTO utilisateurs (pseudo,nom,prenom,email,telephone,rue,code_postal,ville,mot_de_passe,credit,administrateur)
+VALUES ('Lucie', 'Ole', 'Lucy', 'lucy.59@mail.fr', '01-07-26-75-34', 'boulevard de la nuit', '59000', 'Lille', 'LucyO', 200, 0);
+
+
+/* Table ventes >>> 10 articles */
+INSERT INTO ventes (nomarticle,description,date_fin_encheres,prix_initial,prix_vente,no_utilisateur,no_categorie,rue,code_postal,ville)
+VALUES ('Iphone5s', 'Smartphone de la petite pomme', '20190221', 500, 700, 1, 4, 'rue des telecoms', '35000', 'Rennes');
+INSERT INTO ventes (nomarticle,description,date_fin_encheres,prix_initial,prix_vente,no_utilisateur,no_categorie,rue,code_postal,ville)
+VALUES ('Pelle', 'En métal avec manche en bois', '20190219', 50, 75, 4, 6, 'rue du trésor cache', '35150', 'Corps-nuds');
+INSERT INTO ventes (nomarticle,description,date_fin_encheres,prix_initial,prix_vente,no_utilisateur,no_categorie,rue,code_postal,ville)
+VALUES ('Tableau', 'Tableau de maitre', '20190204', 2500, 2750, 3, 5, 'rue du musee', '44000', 'Nantes');
+INSERT INTO ventes (nomarticle,description,date_fin_encheres,prix_initial,prix_vente,no_utilisateur,no_categorie,rue,code_postal,ville)
+VALUES ('Moto enfant', 'Petite moto electrique pour enfants', '20190220', 200, 225, 2, 3, 'rue du lycee', '14000', 'Caen');
+INSERT INTO ventes (nomarticle,description,date_fin_encheres,prix_initial,prix_vente,no_utilisateur,no_categorie,rue,code_postal,ville)
+VALUES ('Commode 6 tiroirs', 'Commode en pin neuve', '20190215', 175, 175, 5, 2, 'rue du bazar', '75000', 'Paris');
+INSERT INTO ventes (nomarticle,description,date_fin_encheres,prix_initial,prix_vente,no_utilisateur,no_categorie,rue,code_postal,ville)
+VALUES ('Tailleur femme', 'Tailleur femme taille 38', '20190215', 200, 200, 5, 1, 'rue du textile', '02000', 'Laon');
+INSERT INTO ventes (nomarticle,description,date_fin_encheres,prix_initial,prix_vente,no_utilisateur,no_categorie,rue,code_postal,ville)
+VALUES ('Collier en or', 'Superbe collier en or 24 carats', '20190301', 1000, 1000, 1, 6, 'avenue du bijou', '38000', 'Grenoble');
+INSERT INTO ventes (nomarticle,description,date_fin_encheres,prix_initial,prix_vente,no_utilisateur,no_categorie,rue,code_postal,ville)
+VALUES ('PC de bureau', 'Pc maquereau-soft avec processeur 5ghz', '20190315', 1200, 1200, 4, 4, 'rue de la ram', '13000', 'Marseille');
+INSERT INTO ventes (nomarticle,description,date_fin_encheres,prix_initial,prix_vente,no_utilisateur,no_categorie,rue,code_postal,ville)
+VALUES ('Service en porcelaine', 'Service complet de 24 couverts', '20190211', 300, 350, 2, 6, 'rue des accidents', '87000', 'Limoges');
+INSERT INTO ventes (nomarticle,description,date_fin_encheres,prix_initial,prix_vente,no_utilisateur,no_categorie,rue,code_postal,ville)
+VALUES ('Drone de combat', 'Drone de combat avec mitrailleuse et balles en mousse', '20190215', 400, 400, 3, 6, 'rue des absents', '31000', 'Toulouse');
+
+
+
+/* table encheres >>> 20 enchères */
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190211', 689, 6, 1);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190212', 700, 4, 1);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190222', 65, 3, 2);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190219', 75, 1, 2);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190219', 2725, 2, 3);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190203', 2750, 5, 3);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190228', 212, 1, 4);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190228', 225, 5, 4);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190217', 770, 2, 5);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190217', 775, 3, 5);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190130', 220, 6, 6);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190130', 225, 3, 6);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190131', 1200, 4, 7);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190131', 1225, 6, 7);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190131', 1210, 2, 8);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190131', 1230, 5, 8);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190131', 1225, 1, 9);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190131', 1230, 3, 9);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190201', 410, 5, 10);
+INSERT INTO encheres (date_enchere,montant,no_utilisateur,no_vente)
+VALUES ('20190201', 420, 1, 10);
+
+-- Creation des ProdStocks
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	Réalise l'insertion d'une enchere dans la table Enchere
+-- =============================================
+CREATE PROCEDURE Enchere_Insert 
+	-- Paramètres de procédure :
+	@date_enchere DATE,
+	@montant INTEGER,
+	@no_utilisateur INTEGER,
+	@no_vente INTEGER
+AS
+BEGIN
+	
+	INSERT INTO encheres (date_enchere, montant, no_utilisateur, no_vente)
+	VALUES (@date_enchere, @montant, @no_utilisateur, @no_vente);
+	UPDATE utilisateurs SET credit = credit - @montant WHERE no_utilisateur = @no_utilisateur;
+	UPDATE ventes SET prix_vente = @montant WHERE no_vente = @no_vente;
+
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	Réalise la sélection d'une enchere selon un couple no_utilisateur, no_vente
+-- =============================================
+CREATE PROCEDURE Enchere_SelectNoUserNoVente 
+	-- Paramètres de procédure :
+	@no_utilisateur INTEGER,
+	@no_vente INTEGER
+	
+AS
+BEGIN
+	
+	SELECT * FROM encheres WHERE no_utilisateur = @no_utilisateur AND no_vente = @no_vente;
+
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	Réalise la sélection de toutes les encheres
+-- =============================================
+CREATE PROCEDURE Enchere_SelectAll
+AS
+BEGIN
+	
+	SELECT * FROM encheres;
+
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	Réalise la modification d'une encheres selon un couple no_utilisateur, no_vente
+-- =============================================
+CREATE PROCEDURE Enchere_Update
+	-- Paramètres de procédure :
+	@date_enchere DATE,
+	@montant INTEGER,
+	@no_utilisateur INTEGER,
+	@no_vente INTEGER
+AS
+	DECLARE @ancien_montant INTEGER;
+BEGIN
+	IF (SELECT archive FROM encheres WHERE no_utilisateur = @no_utilisateur AND no_vente = @no_vente) = 0
+	BEGIN
+	SET @ancien_montant = (SELECT montant FROM encheres WHERE no_utilisateur = @no_utilisateur AND no_vente = @no_vente);
+	UPDATE utilisateurs SET credit = credit + @ancien_montant WHERE no_utilisateur = @no_utilisateur;
+	END
+	UPDATE encheres SET date_enchere = @date_enchere, montant = @montant, archive = 0
+	WHERE no_utilisateur = @no_utilisateur AND no_vente = @no_vente;
+	UPDATE utilisateurs SET credit = credit - @montant WHERE no_utilisateur = @no_utilisateur;
+	UPDATE ventes SET prix_vente = @montant WHERE no_vente = @no_vente;
+END
+GO
+	
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	Réalise l'archivage d'une encheres selon un couple no_utilisateur, no_vente
+-- =============================================
+CREATE PROCEDURE Enchere_DeleteNoUserNoVente 
+	-- Paramètres de procédure :
+	@no_utilisateur INTEGER,
+	@no_vente INTEGER
+	
+AS
+DECLARE @ancien_montant INTEGER;
+DECLARE @nouveau_montant INTEGER;
+BEGIN
+	SET @ancien_montant = (SELECT montant FROM encheres WHERE no_utilisateur = @no_utilisateur AND no_vente = @no_vente);
+	UPDATE encheres SET archive = 1
+	WHERE no_utilisateur = @no_utilisateur AND no_vente = @no_vente;
+	UPDATE utilisateurs SET credit = credit + @ancien_montant WHERE no_utilisateur = @no_utilisateur;
+	SET @nouveau_montant = ISNULL((SELECT TOP(1) montant FROM encheres WHERE no_vente = @no_vente AND archive = 0 ORDER BY montant DESC),
+		(SELECT prix_initial FROM ventes WHERE no_vente = @no_vente));
+	UPDATE ventes SET prix_vente = @nouveau_montant WHERE no_vente = @no_vente;
+	
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	Retrouve le no_utilisateur de l'encherisseur maximum actuel avec un no_vente
+-- =============================================
+CREATE PROCEDURE Enchere_RechercheNoUserWithNoVente 
+	-- Paramètres de procédure :
+	@no_vente INTEGER,
+	@no_utilisateur INTEGER OUTPUT
+	
+AS
+BEGIN
+	SET @no_utilisateur = (SELECT TOP(1) no_utilisateur FROM encheres WHERE no_vente = @no_vente ORDER BY montant DESC);
+	
+END
+GO
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	<Réalise l'insertion d'une categorie dans la table Categories et renvoie son no_categorie>
+-- =============================================
+CREATE PROCEDURE Categorie_Insert 
+	-- Paramètres de procédure :
+	@libelle VARCHAR(30),
+	@no_categorie INTEGER OUTPUT
+	
+AS
+BEGIN
+	
+	INSERT INTO categories (libelle)
+	VALUES (@libelle);
+	SET @no_categorie = SCOPE_IDENTITY();
+
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	<Réalise la sélection d'une categorie selon un no_categorie>
+-- =============================================
+CREATE PROCEDURE Categorie_SelectNoCategorie 
+	-- Paramètres de procédure :
+	@no_categorie INTEGER
+	
+AS
+BEGIN
+	
+	SELECT * FROM categories WHERE no_categorie = @no_categorie;
+
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	<Réalise la sélection de toutes les categories>
+-- =============================================
+CREATE PROCEDURE Categorie_SelectAll 
+AS
+BEGIN
+	
+	SELECT * FROM categories;
+
+END
+GO
+
+-- =============================================
+-- Author:		Damien Bondiguel
+-- Create date: 28/01/2019
+-- Description:	<Réalise la sélection d'une categorie selon un no_categorie>
+-- =============================================
+CREATE PROCEDURE Categorie_SelectLibelle 
+	-- Paramètres de procédure :
+	@libelle VARCHAR(30)
+	
+AS
+BEGIN
+	
+	SELECT * FROM categories WHERE libelle = @libelle;
+
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	<Réalise la modification d'une categorie selon un no_categorie>
+-- =============================================
+CREATE PROCEDURE Categorie_Update 
+	-- Paramètres de procédure :
+	@libelle VARCHAR(30),
+	@no_categorie INTEGER
+	
+AS
+BEGIN
+	
+	UPDATE categories SET libelle = @libelle WHERE no_categorie = @no_categorie;
+
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	<Réalise la suppression d'une categorie selon un no_categorie>
+-- =============================================
+CREATE PROCEDURE Categorie_DeleteNoCategorie 
+	-- Paramètres de procédure :
+	@no_categorie INTEGER
+	
+AS
+BEGIN
+	
+	DELETE FROM categories WHERE no_categorie = @no_categorie;
+
+END
+GO
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise l'insertion d'une vente dans la table VENTES et renvoie son no_vente>
+-- =============================================
+CREATE PROCEDURE Vente_Insert 
+	-- Paramètres de procédure :
+	@nomarticle VARCHAR(30),
+	@description VARCHAR(30),
+	@date_fin_encheres DATE,
+	@prix_initial INTEGER,
+	@prix_vente INTEGER,
+	@no_utilisateur INTEGER,
+	@no_categorie INTEGER,
+	@rue VARCHAR(30),
+	@code_postal VARCHAR(15),
+	@ville VARCHAR(30),
+	@retour INTEGER OUTPUT
+	
+AS
+BEGIN
+	
+	INSERT INTO ventes (nomarticle, description, date_fin_encheres, prix_initial, prix_vente, no_utilisateur, no_categorie, rue, code_postal, ville)
+	VALUES (@nomarticle, @description, @date_fin_encheres, @prix_initial, @prix_vente, @no_utilisateur, @no_categorie, @rue, @code_postal, @ville);
+	SET @retour = SCOPE_IDENTITY();
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection d'une vente selon un no_vente>
+-- =============================================
+CREATE PROCEDURE Vente_SelectNoVente 
+	-- Paramètres de procédure :
+	@no_vente INTEGER
+	
+AS
+BEGIN
+	
+	SELECT * FROM ventes WHERE no_vente = @no_vente;
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection de toutes les ventes>
+-- =============================================
+CREATE PROCEDURE Vente_SelectAll 
+	-- Pas de paramètres de procédure		
+AS
+BEGIN
+	
+	SELECT * FROM ventes;
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la modification d'une vente dans la BDD>
+-- =============================================
+CREATE PROCEDURE Vente_Update
+	-- Paramètres de procédure :
+	@no_vente INTEGER,
+	@nomarticle VARCHAR(30),
+	@description VARCHAR(30),
+	@date_fin_encheres DATE,
+	@prix_initial INTEGER,
+	@prix_vente INTEGER,
+	@no_utilisateur INTEGER,
+	@no_categorie INTEGER,
+	@rue VARCHAR(30),
+	@code_postal VARCHAR(15),
+	@ville VARCHAR(30)
+		
+AS
+BEGIN
+	
+	UPDATE ventes SET nomarticle = @nomarticle, description = @description, date_fin_encheres = @date_fin_encheres,
+	prix_initial = @prix_initial, prix_vente = @prix_vente, no_utilisateur = @no_utilisateur, no_categorie = @no_categorie, rue = @rue, code_postal = @code_postal, ville = @ville
+	where no_vente = @no_vente;
+
+END
+GO
+
+-- =============================================
+-- Author:		Thibault James
+-- Create date: 30/01/2019
+-- Description:	Supprimme une vente avec les enchères associées et met à jour les crédits
+-- =============================================
+CREATE PROCEDURE Vente_DeleteNoVente
+-- Paramètres de procédure :
+	@no_vente INTEGER
+AS
+DECLARE @c_no_vente INTEGER;
+DECLARE @c_no_utilisateur INTEGER;
+DECLARE c1 CURSOR FOR 
+	SELECT v.no_vente, e.no_utilisateur FROM VENTES v
+	INNER JOIN ENCHERES e on v.no_vente = e.no_vente
+	WHERE v.no_vente = @no_vente; 
+OPEN c1;
+FETCH c1 into @c_no_vente, @c_no_utilisateur;
+
+BEGIN
+UPDATE ventes SET archive = 1
+       WHERE no_vente = @no_vente;
+WHILE @@FETCH_STATUS = 0
+	BEGIN
+		EXEC Enchere_DeleteNoUserNoVente @no_utilisateur = @c_no_utilisateur, @no_vente = @c_no_vente; 
+		FETCH c1 into @c_no_vente, @c_no_utilisateur; 
+	END
+CLOSE c1;
+DEALLOCATE c1;
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection de toutes les ventes en fonction d'un ID user>
+-- =============================================
+CREATE PROCEDURE Vente_SelectAllById
+	-- Paramètres de procédure :
+	@no_utilisateur INTEGER
+		
+AS
+BEGIN
+	
+	SELECT * FROM ventes 
+	WHERE no_utilisateur = @no_utilisateur;
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection des ventes en cours sur lesquelles l'utilisateur a enchéri>
+-- =============================================
+CREATE PROCEDURE Vente_SelectAllByBidding
+	-- Paramètres de procédure :
+	@no_utilisateur INTEGER
+
+AS
+BEGIN
+	
+	SELECT * FROM VENTES v
+	INNER JOIN ENCHERES e ON v.no_vente = e.no_vente
+	WHERE e.no_utilisateur = @no_utilisateur AND v.date_fin_encheres > CONVERT(date,DATEADD(DAY, -1, GETDATE())) AND e.archive = 0;
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection des ventes terminées que l'utilisateur a gagnées>
+-- =============================================
+CREATE PROCEDURE Vente_SelectWonId
+	-- Paramètres de procédure :
+	@no_utilisateur INTEGER
+
+AS
+BEGIN
+	
+	SELECT * FROM VENTES v
+	INNER JOIN ENCHERES e ON v.no_vente = e.no_vente
+	WHERE	e.no_utilisateur = @no_utilisateur 
+			AND v.date_fin_encheres < CONVERT(date,DATEADD(DAY, -1, GETDATE()))
+			AND v.prix_vente = e.montant;
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection des ventes qui n'ont aucun lien avec l'utilisateur :
+--				il ne les a pas publiées, gagnées et n'a pas enchéri non plus.>
+-- =============================================
+CREATE PROCEDURE Vente_SelectOthersById
+	-- Paramètres de procédure :
+	@no_utilisateur INTEGER
+
+AS
+BEGIN
+	
+	SELECT v.no_vente, nomarticle, description, date_fin_encheres, prix_initial, prix_vente, v.no_utilisateur, no_categorie, rue, code_postal, ville, photo, termine, archive FROM VENTES v
+	LEFT OUTER JOIN ENCHERES e ON v.no_vente = e.no_vente
+	WHERE	v.date_fin_encheres > CONVERT(date,DATEADD(DAY, -1, GETDATE()))
+EXCEPT
+	SELECT v.no_vente, nomarticle, description, date_fin_encheres, prix_initial, prix_vente, v.no_utilisateur, no_categorie, rue, code_postal, ville, photo, termine, archive FROM VENTES v
+	LEFT OUTER JOIN ENCHERES e ON v.no_vente = e.no_vente
+	WHERE v.no_utilisateur = @no_utilisateur OR e.no_utilisateur = @no_utilisateur;
+			
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection des ventes dans une catégorie choisie par 
+-- 				 l'utilisateur avec une correspondance entre le champ de recherche et le nom de l'article>
+-- =============================================
+CREATE PROCEDURE Vente_SelectAllByCate
+	-- Paramètres de procédure :
+	@libelle VARCHAR(20),
+	@recherche VARCHAR(20)
+
+AS
+BEGIN
+	
+	SELECT * FROM VENTES v
+	INNER JOIN CATEGORIES c ON v.no_categorie = c.no_categorie
+	WHERE	c.libelle = @libelle
+			AND v.nomarticle like '%' + @recherche + '%';
+
+END
+GO
+
+-- =============================================
+-- Author:		<Yann Le Douget>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection des ventes avec une correspondance entre le champ de recherche et le nom de l'article>
+-- =============================================
+CREATE PROCEDURE Vente_SelectAllByRsrch
+	-- Paramètres de procédure :
+	@recherche VARCHAR(20)
+
+AS
+BEGIN
+	
+	SELECT * FROM VENTES
+	WHERE nomarticle like '%' + @recherche + '%';
+
+END
+GO
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 21/01/2019
+-- Description:	Réalise l'insertion d'un nouvel utilisateur
+--				et renvoie son no_utilisateur.
+-- =============================================
+CREATE PROCEDURE Utilisateur_Insert 
+	@pseudo VARCHAR(30),
+	@nom VARCHAR(30),
+	@prenom VARCHAR(30),
+	@email VARCHAR(30),
+	@telephone VARCHAR(15),
+	@rue VARCHAR(30),
+	@code_postal VARCHAR(10),
+	@ville VARCHAR(30),
+	@mot_de_passe VARCHAR(30),
+	@credit INTEGER,
+	@administrateur BIT,
+	@retour INTEGER OUTPUT
+AS
+BEGIN
+	INSERT INTO utilisateurs (pseudo, nom, prenom, email, telephone, rue, code_postal, ville, mot_de_passe, credit, administrateur)
+	VALUES (@pseudo, @nom, @prenom, @email, @telephone, @rue, @code_postal, @ville, @mot_de_passe, @credit, @administrateur);
+	SET @retour = SCOPE_IDENTITY();
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 21/01/2019
+-- Description:	Réalise la sélection d'un nouvel utilisateur par son pseudo.
+-- =============================================
+CREATE PROCEDURE Utilisateur_SelectPseudo
+	@pseudo VARCHAR(30)
+AS
+BEGIN
+	SELECT * FROM utilisateurs WHERE pseudo = @pseudo;
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 21/01/2019
+-- Description:	Réalise la sélection d'un nouvel utilisateur par son email.
+-- =============================================
+CREATE PROCEDURE Utilisateur_SelectEmail
+	@email VARCHAR(30)
+AS
+BEGIN
+	SELECT * FROM utilisateurs WHERE email = @email;
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 21/01/2019
+-- Description:	Réalise la sélection d'un nouvel utilisateur par no_utilisateur.
+-- =============================================
+CREATE PROCEDURE Utilisateur_SelectNoUtilisateur
+	@no_utilisateur VARCHAR(30)
+AS
+BEGIN
+	SELECT * FROM utilisateurs WHERE no_utilisateur = @no_utilisateur;
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 21/01/2019
+-- Description:	Fournit la liste de tous les utilisateurs.
+-- =============================================
+CREATE PROCEDURE Utilisateur_SelectAll
+AS
+BEGIN
+	SELECT * FROM utilisateurs;
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 21/01/2019
+-- Description:	Réalise la mise à jour d'un utilisateur.
+-- =============================================
+CREATE PROCEDURE Utilisateur_Update
+@pseudo VARCHAR(30),
+@nom VARCHAR(30),
+@prenom VARCHAR(30),
+@email VARCHAR(30),
+@telephone VARCHAR(15),
+@rue VARCHAR(30),
+@code_postal VARCHAR(10),
+@ville VARCHAR(30),
+@mot_de_passe VARCHAR(30),
+@credit INTEGER,
+@administrateur BIT,
+@no_utilisateur INTEGER
+AS
+BEGIN
+	UPDATE utilisateurs SET pseudo = @pseudo, nom = @nom, prenom = @prenom, email = @email, telephone = @telephone, rue = @rue, code_postal = @code_postal, ville = @ville, mot_de_passe = @mot_de_passe, credit = @credit, administrateur = @administrateur WHERE no_utilisateur = @no_utilisateur;
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 21/01/2019
+-- Description:	Réalise la suppression d'un utilisateur par son no_utilisateur.
+-- =============================================
+CREATE PROCEDURE Utilisateur_DeleteNoUtilisateur
+@no_utilisateur INTEGER
+AS
+DECLARE c_curseur CURSOR FOR SELECT no_vente FROM ventes WHERE no_utilisateur = @no_utilisateur;
+DECLARE @noVenteUtilisateur INTEGER;
+BEGIN
+	UPDATE utilisateurs SET archive = 1 WHERE no_utilisateur = @no_utilisateur;
+	OPEN c_curseur;
+	FETCH c_curseur INTO @noVenteUtilisateur;
+	WHILE @@FETCH_STATUS = 0
+		BEGIN
+			EXEC Vente_DeleteNoVente @no_vente = @noVenteUtilisateur;
+			FETCH c_curseur INTO @noVenteUtilisateur;
+		END
+	CLOSE c_curseur;
+	DEALLOCATE c_curseur;
+END
+GO

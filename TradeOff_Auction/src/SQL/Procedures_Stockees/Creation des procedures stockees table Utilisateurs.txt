@@ -1,0 +1,124 @@
+﻿SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 21/01/2019
+-- Description:	Réalise l'insertion d'un nouvel utilisateur
+--				et renvoie son no_utilisateur.
+-- =============================================
+CREATE PROCEDURE Utilisateur_Insert 
+	@pseudo VARCHAR(30),
+	@nom VARCHAR(30),
+	@prenom VARCHAR(30),
+	@email VARCHAR(30),
+	@telephone VARCHAR(15),
+	@rue VARCHAR(30),
+	@code_postal VARCHAR(10),
+	@ville VARCHAR(30),
+	@mot_de_passe VARCHAR(30),
+	@credit INTEGER,
+	@administrateur BIT,
+	@retour INTEGER OUTPUT
+AS
+BEGIN
+	INSERT INTO utilisateurs (pseudo, nom, prenom, email, telephone, rue, code_postal, ville, mot_de_passe, credit, administrateur)
+	VALUES (@pseudo, @nom, @prenom, @email, @telephone, @rue, @code_postal, @ville, @mot_de_passe, @credit, @administrateur);
+	SET @retour = SCOPE_IDENTITY();
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 21/01/2019
+-- Description:	Réalise la sélection d'un nouvel utilisateur par son pseudo.
+-- =============================================
+CREATE PROCEDURE Utilisateur_SelectPseudo
+	@pseudo VARCHAR(30)
+AS
+BEGIN
+	SELECT * FROM utilisateurs WHERE pseudo = @pseudo;
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 21/01/2019
+-- Description:	Réalise la sélection d'un nouvel utilisateur par son email.
+-- =============================================
+CREATE PROCEDURE Utilisateur_SelectEmail
+	@email VARCHAR(30)
+AS
+BEGIN
+	SELECT * FROM utilisateurs WHERE email = @email;
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 21/01/2019
+-- Description:	Réalise la sélection d'un nouvel utilisateur par no_utilisateur.
+-- =============================================
+CREATE PROCEDURE Utilisateur_SelectNoUtilisateur
+	@no_utilisateur VARCHAR(30)
+AS
+BEGIN
+	SELECT * FROM utilisateurs WHERE no_utilisateur = @no_utilisateur;
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 21/01/2019
+-- Description:	Fournit la liste de tous les utilisateurs.
+-- =============================================
+CREATE PROCEDURE Utilisateur_SelectAll
+AS
+BEGIN
+	SELECT * FROM utilisateurs;
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 21/01/2019
+-- Description:	Réalise la mise à jour d'un utilisateur.
+-- =============================================
+CREATE PROCEDURE Utilisateur_Update
+@pseudo VARCHAR(30),
+@nom VARCHAR(30),
+@prenom VARCHAR(30),
+@email VARCHAR(30),
+@telephone VARCHAR(15),
+@rue VARCHAR(30),
+@code_postal VARCHAR(10),
+@ville VARCHAR(30),
+@mot_de_passe VARCHAR(30),
+@credit INTEGER,
+@administrateur BIT,
+@no_utilisateur INTEGER
+AS
+BEGIN
+	UPDATE utilisateurs SET pseudo = @pseudo, nom = @nom, prenom = @prenom, email = @email, telephone = @telephone, rue = @rue, code_postal = @code_postal, ville = @ville, mot_de_passe = @mot_de_passe, credit = @credit, administrateur = @administrateur WHERE no_utilisateur = @no_utilisateur;
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 21/01/2019
+-- Description:	Réalise la suppression d'un utilisateur par son no_utilisateur.
+-- =============================================
+CREATE PROCEDURE Utilisateur_DeleteNoUtilisateur
+@no_utilisateur INTEGER
+AS
+DECLARE c_curseur CURSOR FOR SELECT no_vente FROM ventes WHERE no_utilisateur = @no_utilisateur;
+DECLARE @noVenteUtilisateur INTEGER;
+BEGIN
+	UPDATE utilisateurs SET archive = 1 WHERE no_utilisateur = @no_utilisateur;
+	OPEN c_curseur;
+	FETCH c_curseur INTO @noVenteUtilisateur;
+	WHILE @@FETCH_STATUS = 0
+		EXEC Vente_DeleteNoVente @noVente = @noVenteUtilisateur;
+END
+GO

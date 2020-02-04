@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context docBase="TrocBDD">
+<Resource
+	type = "javax.sql.DataSource"
+	name = "ds/Troc"
+	driverClassName = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+	url = "jdbc:sqlserver://10.43.101.28:1433;databasename=TROC_ENCHERES"
+	username = "troc_encheres"
+	password = "troc_encheres"
+	maxIdle = "5"
+	maxTotal = "10"
+	acceptCount = "10"
+	maxWaitMillis = "10000"
+	/>
+</Context>

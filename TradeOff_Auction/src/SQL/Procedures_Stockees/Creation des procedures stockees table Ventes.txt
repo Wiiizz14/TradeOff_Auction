@@ -1,0 +1,216 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise l'insertion d'une vente dans la table VENTES et renvoie son no_vente>
+-- =============================================
+CREATE PROCEDURE Vente_Insert 
+	-- Paramètres de procédure :
+	@nomarticle VARCHAR(30),
+	@description VARCHAR(30),
+	@date_fin_encheres DATE,
+	@prix_initial INTEGER,
+	@prix_vente INTEGER,
+	@no_utilisateur INTEGER,
+	@no_categorie INTEGER,
+	@rue VARCHAR(30),
+	@code_postal VARCHAR(15),
+	@ville VARCHAR(30),
+	@retour INTEGER OUTPUT
+	
+AS
+BEGIN
+	
+	INSERT INTO ventes (nomarticle, description, date_fin_encheres, prix_initial, prix_vente, no_utilisateur, no_categorie, rue, code_postal, ville)
+	VALUES (@nomarticle, @description, @date_fin_encheres, @prix_initial, @prix_vente, @no_utilisateur, @no_categorie, @rue, @code_postal, @ville);
+	SET @retour = SCOPE_IDENTITY();
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection d'une vente selon un no_vente>
+-- =============================================
+CREATE PROCEDURE Vente_SelectNoVente 
+	-- Paramètres de procédure :
+	@no_vente INTEGER
+	
+AS
+BEGIN
+	
+	SELECT * FROM ventes WHERE no_vente = @no_vente;
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection de toutes les ventes>
+-- =============================================
+CREATE PROCEDURE Vente_SelectAll 
+	-- Pas de paramètres de procédure		
+AS
+BEGIN
+	
+	SELECT * FROM ventes;
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la modification d'une vente dans la BDD>
+-- =============================================
+CREATE PROCEDURE Vente_Update
+	-- Paramètres de procédure :
+	@no_vente INTEGER,
+	@nomarticle VARCHAR(30),
+	@description VARCHAR(30),
+	@date_fin_encheres DATE,
+	@prix_initial INTEGER,
+	@prix_vente INTEGER,
+	@no_utilisateur INTEGER,
+	@no_categorie INTEGER,
+	@rue VARCHAR(30),
+	@code_postal VARCHAR(15),
+	@ville VARCHAR(30)
+		
+AS
+BEGIN
+	
+	UPDATE ventes SET nomarticle = @nomarticle, description = @description, date_fin_encheres = @date_fin_encheres,
+	prix_initial = @prix_initial, prix_vente = @prix_vente, no_utilisateur = @no_utilisateur, no_categorie = @no_categorie, rue = @rue, code_postal = @code_postal, ville = @ville
+	where no_vente = @no_vente;
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise l'archivage d'une vente dans la BDD>
+-- =============================================
+CREATE PROCEDURE Vente_DeleteNoVente
+	-- Paramètres de procédure :
+	@no_vente INTEGER
+		
+AS
+BEGIN
+	
+	UPDATE ventes SET archive = 1
+	WHERE no_vente = @no_vente;
+	UPDATE encheres SET archive = 1
+	WHERE no_vente = @no_vente;
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection de toutes les ventes en fonction d'un ID user>
+-- =============================================
+CREATE PROCEDURE Vente_SelectAllById
+	-- Paramètres de procédure :
+	@no_utilisateur INTEGER
+		
+AS
+BEGIN
+	
+	SELECT * FROM ventes 
+	WHERE no_utilisateur = @no_utilisateur;
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection des ventes en cours sur lesquelles l'utilisateur a enchéri>
+-- =============================================
+CREATE PROCEDURE Vente_SelectAllByBidding
+	-- Paramètres de procédure :
+	@no_utilisateur INTEGER
+
+AS
+BEGIN
+	
+	SELECT * FROM VENTES v
+	INNER JOIN ENCHERES e ON v.no_vente = e.no_vente
+	WHERE e.no_utilisateur = @no_utilisateur AND v.date_fin_encheres > SYSDATETIME();
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection des ventes terminées que l'utilisateur a gagnées>
+-- =============================================
+CREATE PROCEDURE Vente_SelectWonId
+	-- Paramètres de procédure :
+	@no_utilisateur INTEGER
+
+AS
+BEGIN
+	
+	SELECT * FROM VENTES v
+	INNER JOIN ENCHERES e ON v.no_vente = e.no_vente
+	WHERE	e.no_utilisateur = @no_utilisateur 
+			AND v.date_fin_encheres < SYSDATETIME()
+			AND v.prix_vente = e.montant;
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection des ventes qui n'ont aucun lien avec l'utilisateur :
+--				il ne les a pas publiées, gagnées et n'a pas enchéri non plus.>
+-- =============================================
+CREATE PROCEDURE Vente_SelectOthersById
+	-- Paramètres de procédure :
+	@no_utilisateur INTEGER
+
+AS
+BEGIN
+	
+	SELECT * FROM VENTES v
+	INNER JOIN ENCHERES e ON v.no_vente = e.no_vente
+
+	WHERE	v.date_fin_encheres > SYSDATETIME()
+			AND v.no_utilisateur <> @no_utilisateur
+			AND e.no_utilisateur <> @no_utilisateur;
+
+END
+GO
+
+-- =============================================
+-- Author:		<Alexis Rebiere>
+-- Create date: <24/01/2019>
+-- Description:	<Réalise la sélection des ventes dans une catégorie choisie par 
+-- 				 l'utilisateur avec une correspondance entre le champ de recherche et le nom de l'article>
+-- =============================================
+CREATE PROCEDURE Vente_SelectAllByCate
+	-- Paramètres de procédure :
+	@libelle VARCHAR(20),
+	@recherche VARCHAR(20)
+
+AS
+BEGIN
+	
+	SELECT * FROM VENTES v
+	INNER JOIN CATEGORIES c ON v.no_categorie = c.no_categorie
+	WHERE	c.libelle = @libelle
+			AND v.nomarticle like '%' + @recherche + '%';
+
+END
+GO

@@ -1,0 +1,106 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	<Réalise l'insertion d'une categorie dans la table Categories et renvoie son no_categorie>
+-- =============================================
+CREATE PROCEDURE Categorie_Insert 
+	-- Paramètres de procédure :
+	@libelle VARCHAR(30),
+	@no_categorie INTEGER OUTPUT
+	
+AS
+BEGIN
+	
+	INSERT INTO categories (libelle)
+	VALUES (@libelle);
+	SET @no_categorie = SCOPE_IDENTITY();
+
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	<Réalise la sélection d'une categorie selon un no_categorie>
+-- =============================================
+CREATE PROCEDURE Categorie_SelectNoCategorie 
+	-- Paramètres de procédure :
+	@no_categorie INTEGER
+	
+AS
+BEGIN
+	
+	SELECT * FROM categories WHERE no_categorie = @no_categorie;
+
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	<Réalise la sélection de toutes les categories>
+-- =============================================
+CREATE PROCEDURE Categorie_SelectAll 
+AS
+BEGIN
+	
+	SELECT * FROM categories;
+
+END
+GO
+
+-- =============================================
+-- Author:		Damien Bondiguel
+-- Create date: 28/01/2019
+-- Description:	<Réalise la sélection d'une categorie selon un no_categorie>
+-- =============================================
+CREATE PROCEDURE Categorie_SelectLibelle 
+	-- Paramètres de procédure :
+	@libelle VARCHAR(30)
+	
+AS
+BEGIN
+	
+	SELECT * FROM categories WHERE libelle = @libelle;
+
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	<Réalise la modification d'une categorie selon un no_categorie>
+-- =============================================
+CREATE PROCEDURE Categorie_Update 
+	-- Paramètres de procédure :
+	@libelle VARCHAR(30),
+	@no_categorie INTEGER
+	
+AS
+BEGIN
+	
+	UPDATE categories SET libelle = @libelle WHERE no_categorie = @no_categorie;
+
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	<Réalise la suppression d'une categorie selon un no_categorie>
+-- =============================================
+CREATE PROCEDURE Categorie_DeleteNoCategorie 
+	-- Paramètres de procédure :
+	@no_categorie INTEGER
+	
+AS
+BEGIN
+	
+	DELETE FROM categories WHERE no_categorie = @no_categorie;
+
+END
+GO

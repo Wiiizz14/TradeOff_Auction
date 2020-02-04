@@ -1,0 +1,303 @@
+@CHARSET "UTF-8";
+
+/* Cette feuille de style concerne les petits mobiles et tablettes */
+.accueil {
+    
+    border-bottom: solid rgba(255, 255, 255, 0.2) 5px;
+    max-width: 100%;
+    
+    
+}
+
+
+.aff_tab {
+    border-bottom: 1px solid white;
+    border-top: none;
+}
+
+
+.alignement-vertical {
+    
+    display: flex;    
+}
+
+
+@keyframes bandeau {
+    
+    0% {background-color: black;}
+    100% {background-color: #01acda;}     
+} 
+
+
+.bandeau {
+    
+    height: 10px;
+    padding-right:0px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-top-style: solid;
+    border-bottom-style: solid;
+    animation-name: bandeau;
+    animation-duration: 4s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+
+body {
+    
+    background-color: white;
+    background-attachment: fixed;
+    /* 
+    rgba(232, 203, 124, 0.90)
+    */
+    background : linear-gradient(-60deg, white 50%, #3CBBCC ) ;
+    
+    background-attachment: fixed;
+    
+    font-family: 'Quicksand';
+    font-weight: 900;
+    font-size: 11px;
+    
+    color: black;
+    overflow: scroll;
+    z-index: 1;
+}
+
+
+@keyframes contour {
+    
+    0% {border-color :rgba(134, 204, 227, 0.9);}
+    
+    100% {border-color : white;}    
+}
+
+
+.bouton-style-1 {
+    
+    height: 45px;
+    width: 100%;
+    margin-bottom: 5%;
+    background: dimgrey;
+    font-style: #000000;
+    border-style: solid;
+    border-width: 4px;
+    border-radius: 10px;
+    background-image: radial-gradient(white 15%, #86CCE3);
+    animation-name: contour;
+    animation-duration: 4s;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+}
+
+
+.bouton-style-1:hover {
+    
+    background-image: radial-gradient(white 40%, #86CCE3);   
+}
+
+
+.cadre-titre-1 {
+    
+    height: 5em;
+    padding-right:0px;
+    background: white;    
+}
+
+
+.conteneur-txt-centre {
+    
+    vertical-align: middle;
+    font: black;
+}
+
+
+.conteneur-image {
+
+    padding-bottom: 0%;    
+}
+
+
+.erreur {  
+    
+	color: #ff0000;
+}
+
+
+@keyframes blink-field {
+    
+    0% : (border: 1px solid black;)
+    100% : (border: 1px solid dimgrey;)
+}
+
+
+fieldset {
+    
+    padding: 10px 10px 10px 10px;
+    border: 1px solid black;
+    animation-name: blink-field;
+    animation-duration: 6s;
+    animation-direction: alternate;
+    animation-iteration-count: infinite;
+}
+
+
+.form-group {   
+    
+    margin-bottom: 6%
+}
+
+
+.img-responsive{
+    
+    max-height:90%;
+}
+
+
+.img-bandeau {
+    
+   max-width:100%;
+}
+
+
+.label-middle {
+    
+    margin-top: 2%;
+    margin-bottom: 2%;    
+}
+
+
+.lien-sans-deco {
+    
+    text-decoration: none;
+    color: #574574;
+}
+
+.lien-sans-deco:visited {
+    
+    text-decoration: none;
+    color: #574574;
+}
+
+.lien-sans-deco:hover {
+    
+    text-decoration: none;
+    color: black;  
+}
+
+
+.logo {
+    
+    max-height: 78px;
+    max-width: 100%;
+}
+
+
+.recherche {
+    
+    width: 80%;    
+}
+
+
+.style-bloc-texte-1 {
+    
+    padding-right : 1px ;    
+}
+
+
+.style-bloc-texte-2 {
+    
+    padding-left : 4px;    
+}
+
+
+table, th{
+    
+    border: 1px solid white;
+    text-align: center;
+    padding-bottom: 1%;
+    padding-top: 1%;
+}
+
+table, td{
+    
+    border-right: 1px solid white;
+    border-left: 1px solid white;
+    border-bottom: none;
+    border-top: none;
+    text-align: center; 
+}
+
+
+.texte-sans-cesure {
+    
+    padding-right : 1px;  
+    padding-left : 1px;
+}
+
+
+.txt-centre {
+    
+    text-align: center;
+}
+
+
+.titre {
+    
+    color : #574574;
+    font-weight: 900 ;
+    font-size: 2em; 
+    z-index: 2;
+    text-shadow: 3px 2px 4px rgba(87, 69, 116, 0.5);
+}
+
+
+.titre-2 {
+    
+    z-index: 1;
+    align-self: ;
+    font-size: 4em;
+    color: rgba(145, 110, 201, 0.6);
+}
+
+
+.titre-3 {
+    
+    color : #5745C8;
+    font-weight: 850 ;
+    font-size: 2em;
+    align-self: flex-end;
+    padding-right: 5%; 
+    z-index: 2;
+    text-shadow: 3px 2px 4px rgba(87, 69, 116, 0.5);
+}
+
+
+.to-top {
+    
+    margin-top: 5%;
+    margin-bottom: 5%;
+    padding-right: 7%;
+    text-align: right;
+}
+
+
+.white {
+    
+    width: 70%;
+    height: 64px;
+    background-color: white;
+    display: flex;    
+}
+
+
+
+
+
+
+
+
+
+
+
+

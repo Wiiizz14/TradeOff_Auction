@@ -1,0 +1,101 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	Réalise l'insertion d'une enchere dans la table Enchere
+-- =============================================
+CREATE PROCEDURE Enchere_Insert 
+	-- Paramètres de procédure :
+	@date_enchere DATE,
+	@montant INTEGER,
+	@no_utilisateur INTEGER,
+	@no_vente INTEGER
+AS
+BEGIN
+	
+	INSERT INTO encheres (date_enchere, montant, no_utilisateur, no_vente)
+	VALUES (@date_enchere, @montant, @no_utilisateur, @no_vente);
+	UPDATE utilisateur SET credit = credit - @montant WHERE no_utilisateur = @no_utilisateur;
+
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	Réalise la sélection d'une enchere selon un couple no_utilisateur, no_vente
+-- =============================================
+CREATE PROCEDURE Enchere_SelectNoUserNoVente 
+	-- Paramètres de procédure :
+	@no_utilisateur INTEGER,
+	@no_vente INTEGER
+	
+AS
+BEGIN
+	
+	SELECT * FROM encheres WHERE no_utilisateur = @no_utilisateur AND no_vente = @no_vente;
+
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	Réalise la sélection de toutes les encheres
+-- =============================================
+CREATE PROCEDURE Enchere_SelectAll
+AS
+BEGIN
+	
+	SELECT * FROM encheres;
+
+END
+GO
+
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	Réalise la modification d'une encheres selon un couple no_utilisateur, no_vente
+-- =============================================
+CREATE PROCEDURE Enchere_Update
+	-- Paramètres de procédure :
+	@date_enchere DATE,
+	@montant INTEGER,
+	@no_utilisateur INTEGER,
+	@no_vente INTEGER
+AS
+	DECLARE @ancien_montant INTEGER;
+BEGIN
+	
+	SET @ancien_montant = (SELECT montant FROM encheres WHERE no_utilisateur = @no_utilisateur AND no_vente = @no_vente);
+	UPDATE utilisateurs SET credit = credit + @ancien_montant WHERE no_utilisateur = @no_utilisateur;
+	UPDATE encheres SET date_enchere = @date_enchere, montant = @montant
+	WHERE no_utilisateur = @no_utilisateur AND no_vente = @no_vente;
+	UPDATE utilisateurs SET credit = credit - @montant WHERE no_utilisateur = @no_utilisateur;
+
+END
+GO
+	
+-- =============================================
+-- Author:		Yann Le Douget
+-- Create date: 25/01/2019
+-- Description:	Réalise l'archivage d'une encheres selon un couple no_utilisateur, no_vente
+-- =============================================
+CREATE PROCEDURE Enchere_DeleteNoUserNoVente 
+	-- Paramètres de procédure :
+	@no_utilisateur INTEGER,
+	@no_vente INTEGER
+	
+AS
+DECLARE @ancien_montant INTEGER;
+BEGIN
+	SET @ancien_montant = (SELECT montant FROM encheres WHERE no_utilisateur = @no_utilisateur AND no_vente = @no_vente);
+	UPDATE encheres SET archive = 1
+	WHERE no_utilisateur = @no_utilisateur AND no_vente = @no_vente;
+	UPDATE utilisateurs SET credit = credit + @ancien_montant WHERE no_utilisateur = @no_utilisateur;
+
+END
+GO

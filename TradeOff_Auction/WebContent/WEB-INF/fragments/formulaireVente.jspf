@@ -1,0 +1,57 @@
+<!-- Auteur : Alexis Rebiere -->
+<form class="form-horizontal" action="./GestionDesEncheres" method="post" accept-charset="ISO-8859-1, UTF-8">
+
+			<div class="nom_article col-xs-10">    
+	            <p>Rocket stove pour riz et pâtes </p>
+	        </div>
+	
+	        <div class="container">
+	             <img class="img-responsive" src="image_article.png" alt="image de l'article" >    
+	        </div>    
+	       
+	        <br>
+                
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-xs-4 col-xs-offset-1">Meilleure offre :</label> 
+                    <div class="col-xs-6">${prixVente} par ${acheteur }</div>         
+                </div>
+            </div>
+                
+            <div class="form-group">
+                <div class="row">
+                    <label class="col-xs-4 col-xs-offset-1">Mise à prix :</label> 
+                    <div class="col-xs-6">${prixInitial}</div>    
+                </div>
+            </div>
+              
+            <div class="form-group">    
+                <div class="row">
+                    <label class="col-xs-4 col-xs-offset-1">Fin de l'enchère :</label> 
+                    <div class="col-xs-6">${dateFin}</div>    
+                </div>
+            </div>
+                
+            <div class="form-group">    
+                <div class="row">
+                    <label class="col-xs-4 col-xs-offset-1">Retrait :</label> 
+                    <div class="col-xs-6">
+                    
+                    <div class="row">
+                    ${rue}
+                    </div>
+                    
+                    <div class="row">
+                    ${ville}, ${codePostal}
+                    </div>
+                    
+                    </div>    
+                </div>
+            </div>
+            
+            <div class="form-group">    
+                <div class="row">
+                    <label class="col-xs-4 col-xs-offset-1">Vendeur :</label> 
+                    <div class="col-xs-6">${vendeur }</div>    
+                </div>
+            </div>
